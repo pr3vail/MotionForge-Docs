@@ -117,6 +117,20 @@ Transitions must be physically possible: lying down followed by sprinting needs 
 | **Text Cfg Weight** | How literally the prompt is obeyed. | 2.0; raise to 3-4 if ignored (stiffer); lower toward 1.5 if robotic. |
 | **Transition Cfg Weight** | How hard each segment's start is held to the end of the previous one. | 2.0; raise if transitions pop, lower if they look forced. |
 
+### How long a take takes
+
+On a CPU, most of a first take is spent reading your prompt with the text model (about 12 seconds),
+and the rest is the diffusion steps (about half a second each). With the kimodo.cpp backend,
+MotionForge keeps the model running between takes and remembers every prompt it has read, so **a second take of the same prompt skips
+that part**: measured on a desktop CPU, a 2-second take at 5 steps went from 18 s to 3 s, and at 20
+steps from 23 s to 10 s. That makes Samples of 2-4, a new seed, or a tweak to steps or guidance cheap
+once the first take is done. A new prompt, or an edited one, pays the reading cost once.
+
+The kept-loaded model uses memory while it's alive and exits after 10 idle minutes. Both are in
+**Editor Preferences > Plugins > MotionForge > kimodo.cpp**: **Keep kimodo.cpp Loaded** and **Idle
+Shutdown (minutes)**. Changing guidance restarts it once, because those values are read when
+it starts.
+
 After Generate, the status line reads the result: take, seed, length, and **how far the pelvis
 travelled** (straight-line and along its path). A "walk forward" that travelled almost nothing
 did not walk, whatever a still frame looks like.
@@ -229,7 +243,15 @@ export (or the raw clip if nothing is exported) through Unreal's IK Retargeter a
 |---|---|
 | **Base Male (MotionForge)** / **Base Female (MotionForge)** | Ready-made base characters that ship with the plugin: a neutral mannequin body on a UE-mannequin-style skeleton (`pelvis`, `spine_01`, `upperarm_l`, `thigh_l`, full fingers), with a physics asset. Free to use in your game. |
 | **UE5 Manny** / **UE5 Quinn** / **UEFN Mannequin** | Epic's mannequins, when they're in your project. |
+| **MetaHuman: *name*** | Each MetaHuman body in your project (found by its `metahuman_base_skel` skeleton). |
+| **Character Creator: *name*** / **Mixamo: *name*** | Reallusion CC3/CC4 characters (`CC_Base_` bones) and Mixamo-rigged characters (`Hips`, `LeftUpLeg`... or `mixamorig:` bones) in your project. |
 | **Target Skeletal Mesh** | Your own character, set in Details > Retarget. Asks where to save the result. |
+
+MetaHumans, Character Creator and Mixamo characters only appear once they're in the project: add a
+MetaHuman from the MetaHuman Creator or Quixel Bridge, or import a CC or Mixamo FBX as a skeletal mesh.
+The menu lists up to 12 of them. For a MetaHuman, the clip goes onto the **body** (the face follows
+through the MetaHuman Blueprint). To play it, set the clip on the Body component, or use it in the
+MetaHuman's animation Blueprint.
 
 One-click characters need no setup: MotionForge builds its own IK Rig for the target automatically
 (chains only, so a solver in a hand-made rig can't pin the pelvis) and keeps it next to the result.
@@ -255,6 +277,22 @@ carries a Root Motion export's setting across for you. For clips retargeted by h
 them in the Content Browser: **MotionForge > Set Up For Root Motion** / **Set Up For In Place**.
 
 Fix motion problems at the source (a better prompt, a key), not in the retarget.
+
+## Working on many clips at once
+
+Select several assets in the Content Browser and right-click. Everything here does what the recipe
+editor's buttons do, for the whole selection.
+
+| On | Right-click > MotionForge > | What it does |
+|---|---|---|
+| **Animation sequences** | **Retarget To** > a character | Retargets every selected clip onto that character (the same list as the Retarget menu). Each lands next to the character, with its root-motion setting carried across. |
+| | **Set Up For Root Motion** / **Set Up For In Place** | Sets the root-motion flags on every selected clip. |
+| **Recipes** | **Generate Selected** | Generates each recipe in turn with its own Samples, seed and settings, in the background. A notification shows progress and has **Cancel**; finished takes are kept. Recipes open in the recipe editor are skipped (generate those from their editor). |
+| | **Export Selected** | Exports each recipe's loaded clip: trimmed, keys baked, Export Motion applied. |
+| | **Retarget Latest Export To** > a character | Retargets each recipe's latest export (or its loaded clip, if it has no export). |
+
+When a batch finishes, the new clips are selected in the Content Browser and a notification lists
+anything that failed and why.
 
 ## Scripting
 
@@ -309,4 +347,16 @@ creates goes into your project, never the plugin.
 | Exported clip runs on the spot | Expected for Root Motion; play it on a character, or export As Generated. |
 | Root path snakes | Raise Root Motion Smoothing Frames and export again. |
 | Generate is greyed out | The top status line says why: backend not set up, licences not accepted, or no active prompt. |
-| Generation is slow | Each take reloads the model (tens of seconds on CPU). Lower Samples and steps while iterating. |
+| Generation is slow | The first take of a new prompt spends ~12 s on CPU reading it; repeat takes of the same prompt skip that. Lower steps while iterating, and check **Keep kimodo.cpp Loaded** is on. |
+| A MetaHuman, CC or Mixamo character isn't in the Retarget menu | It must be a skeletal mesh in your project's Content folder. MetaHumans are found by their body mesh; CC and Mixamo by their bone names. Otherwise set it as the Target Skeletal Mesh in Details. |
+
+## More guides and help
+
+Both guides are in the plugin's Docs folder and on the docs site (https://pr3vail.github.io/MotionForge-Docs/).
+
+- [Prompting Guide](prompting-guide.md): prompt patterns that work, by kind of motion, with durations and settings.
+- [Characters Guide](characters-guide.md): getting clips onto MetaHumans, Character Creator, Mixamo and your own
+  characters, and playing them.
+- Questions and bug reports: **support@pr3vailco.com**, or the Pr3vail Discord at
+  **https://discord.gg/dXae7duN**. For a generation problem, include what the Setup tab's **Check
+  Setup** reports.
