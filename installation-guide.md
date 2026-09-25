@@ -12,9 +12,11 @@ them under their own licences, which you accept yourself.
 
 ## Recommended: kimodo.cpp (portable, no Python or CUDA)
 
-The default backend. It runs on the CPU, with no Python environment and no GPU driver setup. The
-generator itself - `kmd-generate.exe`, a build of `github.com/localai-org/kimodo.cpp` (Apache-2.0)
-- ships inside the plugin, so there's nothing to compile.
+The default backend, with no Python environment to install. The generator itself -
+`kmd-generate.exe`, a build of `github.com/localai-org/kimodo.cpp` (Apache-2.0) - ships inside the
+plugin in two versions, one using the GPU through Vulkan and one for the CPU only, so there's nothing
+to compile. The GPU version needs nothing beyond your normal graphics driver; without one, MotionForge
+uses the CPU version.
 
 1. Click the **MotionForge** toolbar button. The **Setup Wizard** opens.
 2. Read and accept both licences it shows (NVIDIA Open Model License for the motion model, Meta
@@ -25,8 +27,9 @@ generator itself - `kmd-generate.exe`, a build of `github.com/localai-org/kimodo
 4. Open the Recipe editor's **Setup** tab and press **Check Setup**. It launches the generator once
    and confirms it runs on this machine.
 
-Plan for disk space (~16 GB) and time: on CPU, each take takes tens of seconds, most of it loading
-the model. It's local and free to run as often as you like.
+Plan for disk space (~16 GB) and time: the first take of a new prompt takes about 15-25 seconds,
+most of it reading the prompt with the text model. Repeat takes of the same prompt are much faster
+(well under a second on a GPU). It's local and free to run as often as you like.
 
 ### Setting it up by hand
 

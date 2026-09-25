@@ -131,6 +131,24 @@ The kept-loaded model uses memory while it's alive and exits after 10 idle minut
 Shutdown (minutes)**. Changing guidance restarts it once, because those values are read when
 it starts.
 
+**GPU or CPU.** MotionForge ships two builds of the generator: one that uses the GPU through Vulkan
+and one for the CPU only. **Compute Device** (same settings page) picks between them:
+
+| Compute Device | Runs on |
+|---|---|
+| **Auto** (default) | The GPU when this PC has Vulkan drivers (every current AMD, NVIDIA and Intel driver installs them), else the CPU. A GPU run that fails, for example out of video memory, is retried on the CPU, which is then used for the rest of the session. |
+| **CPU only** | The CPU. |
+| **Vulkan** | The GPU, reporting errors instead of falling back. |
+
+The Setup tab's **This Machine** section says which one will be used. On a 16 GB AMD card, a repeat
+take finished in about 0.1 s against 3 s on the CPU; a first take is only a little faster, because
+reading the prompt is mostly reading the text model from disk. GPU and CPU results differ by float
+rounding (about 1-2 cm on the root), so each take's result record notes which device made it.
+
+**Segment length.** kimodo.cpp makes at most **10 seconds per segment** (300 frames); the timeline
+won't go past that, and a longer segment from an older recipe stops Generate with a message naming
+it. For longer motion, add segments: they still come out as one continuous clip.
+
 After Generate, the status line reads the result: take, seed, length, and **how far the pelvis
 travelled** (straight-line and along its path). A "walk forward" that travelled almost nothing
 did not walk, whatever a still frame looks like.
@@ -347,7 +365,7 @@ creates goes into your project, never the plugin.
 | Exported clip runs on the spot | Expected for Root Motion; play it on a character, or export As Generated. |
 | Root path snakes | Raise Root Motion Smoothing Frames and export again. |
 | Generate is greyed out | The top status line says why: backend not set up, licences not accepted, or no active prompt. |
-| Generation is slow | The first take of a new prompt spends ~12 s on CPU reading it; repeat takes of the same prompt skip that. Lower steps while iterating, and check **Keep kimodo.cpp Loaded** is on. |
+| Generation is slow | The first take of a new prompt spends ~12 s reading it; repeat takes of the same prompt skip that. Check **Keep kimodo.cpp Loaded** is on, and that the Setup tab's **This Machine** says the GPU. Lower steps while iterating. |
 | A MetaHuman, CC or Mixamo character isn't in the Retarget menu | It must be a skeletal mesh in your project's Content folder. MetaHumans are found by their body mesh; CC and Mixamo by their bone names. Otherwise set it as the Target Skeletal Mesh in Details. |
 
 ## More guides and help
