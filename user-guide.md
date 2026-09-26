@@ -44,8 +44,19 @@ Five dockable tabs. Drag them anywhere; **Window > Load Layout > Default Editor 
 | **Export** | Make the finished clip (see *Exporting*). |
 | **Retarget** | Retarget the latest export onto a base character, Manny/Quinn/UEFN, or your own mesh. |
 | **Show** | Preview the generated, exported or retargeted clip, or the reference pose. |
+| **In Level** | Play the take on the character selected in the level (retargeted onto it first if needed), or on a new one in front of the camera (see *In the level*). |
+| **Level Target** | Edit the constraint pins on that character in the level, with the level gizmo (see *Placing pins in the level*). |
+| **Blender** | Edit in Blender, Sync Back, Auto Sync (see *Editing in Blender*). |
+| **Jobs** | The Jobs tab: every generation, queued, running and finished (see *Working on many clips at once*). |
 | **Tour** / **Guide** | The editor tour, and this guide (see *Help inside the editor*). |
 | **Search box** | Find any recipe, clip, guide section or tab (see *Search*). |
+
+### Viewport options
+
+The row under the viewport: **Joints**, **Root Path** (the pelvis's ground path), **Contacts** (a green
+ring under each planted foot - low and still, the same test the clean-up uses) and **Pins**
+(constraints). **View** holds the floor toggle, playback speed (0.25x-2x) and the camera's field of
+view.
 
 ## Help inside the editor
 
@@ -166,10 +177,10 @@ locks, pose keys, export range and props don't count; changing them never marks 
 AutoPose is for "nearly right, but the hand should be *here*". You pose a joint at a frame; that
 becomes a **key** that fades in and out around its frame and is baked into the exported clip.
 
-MotionForge's kimodo.cpp backend has no pose-constraint input, so keys are an edit on top of the
-generated motion - they don't make the model re-author the motion around them. Key sparsely: two
-or three keys at the extremes of an action (the contact, the peak) shape a clip; twenty keys make
-it look interpolated.
+Keys are an edit on top of the generated motion - they don't make the model re-author the motion
+around them (a **constraint** does that; see the next section). Key sparsely: two or three keys at
+the extremes of an action (the contact, the peak) shape a clip; twenty keys make it look
+interpolated.
 
 1. Press **AutoPose: Off** to turn it on. Playback pauses.
 2. Click a joint in the viewport (or a button in the bone picker).
@@ -206,6 +217,78 @@ Each posed bone gets its own lane. A key is drawn as a square with a bar showing
 The panel under the lanes edits the selected key: nudge a frame, **Blend in/out** (frames either
 side), **To clip ends**, **Weight**, **Enabled**, **Lock**, **Duplicate** (to the playhead),
 **Delete**.
+
+## Constraints: steering the model
+
+A constraint is a pose the model must hit. Unlike an AutoPose key, which is baked on top afterwards,
+a constraint is sent to the model with the prompt, so the **next Generate authors the whole motion
+around it**: the steps before a planted foot lead into it, the body turns to reach a pinned hand.
+
+Every backend takes constraints: the bundled kimodo.cpp (MotionForge's build adds constraint input
+to it), kimodo_gen, and a remote server. If you point **Kimodo Cpp Generate Exe Path** at your own
+kimodo.cpp build, it needs MotionForge's patch (`Resources/kimodo-cpp-win64/motionforge.patch`).
+
+1. Get the body into the pose at a frame - pose it with AutoPose, or use a take that's close.
+2. In the AutoPose tab under **Constraints**, pin what matters:
+
+| Button | Holds | Kimodo type |
+|---|---|---|
+| **Pin Full Body** | Every joint, and where the body is. | `fullbody` |
+| **Pin Root Path** | Where the pelvis is on the ground (X/Y). A few along a line make the character walk that path. | `root2d` |
+| **Pin L / R Hand** | Where the hand is, and how it's turned. | `left-hand` / `right-hand` |
+| **Pin L / R Foot** | Where the foot is - plant a step on a mark. | `left-foot` / `right-foot` |
+
+3. Generate. Each take now bends to the pins (in testing, on every backend, pinned joints landed 2-7 cm from their pins,
+   against 23-272 cm for the same seed without them).
+
+Pinning snapshots the pose on screen, so loading another take never moves a constraint. The list
+under the buttons can switch one off, jump to its frame (**Go**), replace it with the pose now on
+screen (**Re-pin**) or delete it. Constraints also get their own lanes at the bottom of the
+Timeline tab. A few well-spaced pins steer best; pinning every frame fights the model.
+
+In the viewport, a pin on the current frame shows as a pink ghost of the pinned pose (the pinned hand
+or foot circled), and Root Path pins show as pink rings joined on the floor. Turn them off with
+**Pins** under the viewport.
+
+### Placing pins in the level
+
+**Level Target** (toolbar) edits the pins on a character standing in your level, against the real
+scene: a hand on a real table, a step on a real stair.
+
+1. Select the character in the level (or select nothing to get a new one in front of the camera).
+2. Click **Level Target**. The take plays on the character, and every pin gets a marker: a small
+   sphere for a hand or foot, a flat disc for a Root Path pin.
+3. Move a marker with the level gizmo. A hand or foot pin re-solves that arm or leg, a Full Body pin
+   moves the whole pose, and a Root Path pin moves on the ground. A marker the limb can't reach snaps
+   back to where it can.
+4. The character follows this editor's playhead, so scrub to a pin's frame to check it.
+5. Click **Level Target** again to finish, then **Generate**.
+
+Moving the character moves its markers with it. The markers are temporary and never saved with the
+level. On a retargeted character, pins are scaled to its height.
+
+### Drawing a path
+
+To make the character walk a route, draw it:
+
+1. **Draw Path**, then click points on the floor in the viewport. **Clear Drawing** starts over.
+2. **Make Smooth** curves through the points; off, it's straight lines between them.
+3. **Apply Path** turns the drawing into Root Path pins every *N* frames (**Pin every**), spread by
+   distance over the recipe's whole length - a steady walking pace. It replaces the recipe's Root
+   Path pins.
+4. Generate with a walking prompt. **Shift Root Pins** moves every Root Path pin by an X / Y
+   offset; **Remove Root Pins** clears them.
+
+**Import... / Export...** read and write Kimodo's own `constraints.json`, so constraint sets move
+between recipes, teammates and NVIDIA's Kimodo demo. Poses must be 77-joint SOMA poses.
+
+Constraints can only be pinned on a clip on MotionForge's SOMA skeleton (a generated clip), not a
+retargeted one. Adding, moving or switching off a constraint marks the loaded clip stale, since it
+changes what's generated.
+
+**Reduce Foot Sliding** (Details panel, Generation) lets kimodo_gen run Kimodo's own foot-skate
+cleanup. It needs Kimodo's `motion_correction` extension built in your venv; leave it off if
+generation fails with it on.
 
 ## Props: posing against something real
 
@@ -252,6 +335,38 @@ dotted line on the viewport floor (**Root Path**) is the raw pelvis path, before
 A Root Motion clip looks like it runs on the spot in the animation editor - there's no capsule
 there. Play it on a character.
 
+Tick **Clean Up On Export** (Details > Export) to run the clean-up below on every export.
+
+## Cleaning up clips
+
+Generated motion can float a little, sink a little, or let a planted foot slide. The clean-up fixes
+that after the fact, on any clip - generated, exported or retargeted onto another character (it
+finds the legs and arms on MotionForge's skeleton, Manny/Quinn, MetaHumans, UEFN, Mixamo and
+Character Creator characters). Right-click clips > **MotionForge > Clean Up...**, or a folder >
+**MotionForge: Clean Up Clips in Folder...**. It saves cleaned copies (`<clip>_Clean`) unless you
+tick **Overwrite**.
+
+| Pass | What it does |
+|---|---|
+| **Ground** | Moves the whole body up or down so planted feet stand at **Ground Height**. |
+| **Ground Feet** | While a foot is planted, puts its sole on the floor (no floating, no sinking). |
+| **Anchor Feet** | While a foot is planted, holds it still - removes foot sliding. |
+| **Self Collision** | Pushes the arms out of the torso and thighs where they pass through the body. **Hands Only** is a gentler version for the hands alone. |
+
+A foot counts as planted when it's below **Contact Height** (10 cm) and slower than **Contact
+Speed** (15 cm/s) - Kimodo's own rule. Fixes fade in and out over **Blend Frames** and are capped by
+**Max Correction**, so a wrong detection can't wreck a pose. Legs and arms are moved with two-bone
+IK. Where a planted foot is out of reach even with the leg straight, **Lower Hips To Reach** drops
+the hips just enough for it (capped by **Max Correction**, eased over the neighbouring frames).
+Collision uses the character's own physics asset when it has one (the clip's preview mesh or its
+skeleton's): every capsule, sphere and box on the body. Without one, it uses capsules sized from the
+skeleton (shoulder and hip width). The report says which.
+
+In testing on a generated walk, planted-foot sliding went from 2.1 cm to 0.0 cm and soles from 9.4
+cm to 0.0 cm off the floor. With IK alone, without lowering the hips, the results were 0.6 cm and
+1.3 cm. A clip lifted 6 cm was grounded back exactly. A hand driven into the chest was pushed 11 cm
+clear, and to a physics-asset body's surface (24 cm) when it had one.
+
 ## Retargeting onto a character
 
 Open the **Retarget** menu on the toolbar and pick a character. MotionForge retargets the latest
@@ -294,6 +409,20 @@ The IK Retargeter creates new animations with root-motion flags at their default
 carries a Root Motion export's setting across for you. For clips retargeted by hand, right-click
 them in the Content Browser: **MotionForge > Set Up For Root Motion** / **Set Up For In Place**.
 
+A character with longer or shorter legs than MotionForge's skeleton can end up floating or sinking.
+Tick **Ground Retargeted Clips** (Editor Preferences > Plugins > MotionForge > Export) to stand every
+retarget back on the floor, or run **Clean Up** on it.
+
+**Auto Scale Retargets** (same place, on by default) finds the stride scale for each character. That
+is the IK Retargeter's **Pelvis Motion > Scale Horizontal**: how far the hips travel per centimetre
+the source travels. MotionForge tries a few values with quick retarget passes and keeps the one with
+the least foot sliding, and the status line reports it. In testing on a generated walk, sliding went
+from 2.29 cm to 0.83 cm on the Base Male, 1.76 to 0.75 cm on the Base Female and 1.12 to 0.64 cm on
+a MetaHuman. Turn it off to keep a scale you set yourself in the IK Retargeter.
+
+MetaHuman clothing is separate meshes on the body's skeleton. To work with one mesh, select the body
+and its garments and choose **MotionForge: Merge Body + Garments** (see [MetaHuman Guide](metahuman-guide.md)).
+
 Fix motion problems at the source (a better prompt, a key), not in the retarget.
 
 ## Working on many clips at once
@@ -305,12 +434,155 @@ editor's buttons do, for the whole selection.
 |---|---|---|
 | **Animation sequences** | **Retarget To** > a character | Retargets every selected clip onto that character (the same list as the Retarget menu). Each lands next to the character, with its root-motion setting carried across. |
 | | **Set Up For Root Motion** / **Set Up For In Place** | Sets the root-motion flags on every selected clip. |
-| **Recipes** | **Generate Selected** | Generates each recipe in turn with its own Samples, seed and settings, in the background. A notification shows progress and has **Cancel**; finished takes are kept. Recipes open in the recipe editor are skipped (generate those from their editor). |
+| | **Clean Up...** | Grounds, plants and (optionally) un-collides every selected clip (see *Cleaning up clips*). |
+| | **Chain into Level Sequence...** | Plays the clips back to back on one character in a new Level Sequence (see *In Sequencer*). |
+| | **Lay Out in Level...** | A labelled grid of characters, one per clip (see *In the level*). |
+| | **Edit in Blender** / **Sync Back from Blender** | See *Editing in Blender*. |
+| | **Build Motion Index...** / **Export Animation Pack...** | See *Motion index and animation packs*. |
+| **Folders** | **MotionForge: Clean Up Clips in Folder...** / **Build Motion Index for Folder...** / **Export Folder as Animation Pack...** | The same, for every clip in the folder and its subfolders. |
+| **Blueprints** | **MotionForge: Make Playable Character...** | See *In the level*. |
+| **Recipes** | **Generate Selected** | Queues each recipe in the Jobs tab; they generate one after another in the background, each with its own Samples, seed and settings. Recipes open in the recipe editor are skipped (generate those from their editor). |
 | | **Export Selected** | Exports each recipe's loaded clip: trimmed, keys baked, Export Motion applied. |
 | | **Retarget Latest Export To** > a character | Retargets each recipe's latest export (or its loaded clip, if it has no export). |
 
-When a batch finishes, the new clips are selected in the Content Browser and a notification lists
-anything that failed and why.
+When an Export or Retarget batch finishes, the new clips are selected in the Content Browser and a
+notification lists anything that failed and why.
+
+### The Jobs tab
+
+**Window > MotionForge Jobs** (or **Jobs** on the recipe editor's toolbar): every generation - queued,
+running and finished - one row each, newest on top: recipe, status, takes done, time, where it came
+from, backend, and what it made (click to find it in the Content Browser; hover for the list and any
+error). **Cancel** takes a queued job out or stops the running one (finished takes are kept);
+**Cancel All**, **Clear History**. The history survives restarts (`Saved/MotionForge/JobHistory.json`).
+The recipe editor's own Generate shows up here too.
+
+### Batches from a prompt file
+
+**New Batch from Prompt File...** (in the Jobs tab) turns a list of prompts into recipes and generates
+them all. Load a file or paste the list:
+
+```
+# Walk set
+1. a person walks forward and waves | 6s | seed 12 | name Wave
+2. a person jogs in a circle
+- a person sits down -> stands up | 3s, 2.5s
+```
+
+One clip per line. Only the prompt is required; `| 6s` sets the length, `| seed 12` pins the seed,
+`| name Wave` names the recipe, and `a -> b` makes two segments (with a length each, `3s, 2.5s`).
+List markers, `#` headings and `>` quotes are ignored. A CSV (`prompt,duration,seed,name`, durations
+of segments separated by `;`) works too.
+
+Each line becomes a recipe in the batch folder and a job in the queue. Optionally each finished line
+is exported (with an Export Motion of your choice), retargeted onto any characters you tick, and
+renamed by a **Name pattern**: `{Index}` (the line number, 001), `{Recipe}`, `{Prompt}` (its first
+words), `{Target}` (the character), `{Seed}`, `{Kind}` (Export / Retarget) - e.g.
+`A_{Index}_{Prompt}_{Target}`.
+
+A batch keeps a record in `Saved/MotionForge/Batches`, so a batch that was cancelled, failed partway or
+cut short by closing the editor carries on from **Resume Batch** - only the unfinished lines run
+again (**Run Every Line Again** redoes all of them).
+
+### Importing prompts into one recipe
+
+**Import Prompts...** under the prompt timeline pastes a list the same way, but every line becomes a
+segment of this recipe - one continuous clip - instead of a recipe of its own.
+
+## In Sequencer
+
+The full walkthrough is in [Sequencer Guide](sequencer-guide.md).
+
+**The MotionForge track.** On a character's row, click **+ Track > MotionForge** to add a shot at the
+playhead: a prompt over a stretch of time. Right-click the shot and choose **Generate**. MotionForge
+reads the pose just before the shot and the pose at its end, from whatever plays there (animation
+clips, or a Control Rig track you keyed by hand), and pins them. It then generates between them and
+puts the take on the character's animation track. Generating again replaces the shot's last take.
+To land a move exactly, key the pose on a Control Rig track at the shot's end and generate into it.
+
+Open a Level Sequence with a character in it. Sequencer's toolbar also gets a **MotionForge** menu.
+
+**Generate on Selected Character...** - select the character's track, put the playhead where the new
+motion should start, and write the prompt (one segment per line; `| 2s` for a segment's length).
+MotionForge generates in the background (see the Jobs tab), retargets the result onto that character
+if it needs it, and adds it to the character's animation track at the playhead. **Start from the
+pose playing here** pins the new motion's first frame to the MotionForge clip already playing at the
+playhead, so it carries on from it instead of snapping to a new start. **Mute the older sections it
+overlaps** keeps the old take on the track, switched off. Both the raw clip and the retargeted one are
+kept.
+
+**Add Prompt Subtitles** - shows each MotionForge clip's prompt as a line of text over the selected
+character while it plays (a text actor per clip, attached to the head).
+
+**Bake Selected to Control Rig** - turns the selected character's animation into an FK Control Rig
+track, so any joint can be keyed by hand.
+
+**Chain into Level Sequence...** (right-click clips in the Content Browser) builds a new Level
+Sequence that plays the selected clips back to back on one character, in the order you selected them.
+Each clip starts where the previous one ended, facing the way it faced (**Match height** off keeps
+every clip's own height), and neighbouring clips blend over **Blend frames**. **Show each clip's
+prompt as a subtitle** adds the subtitles as above.
+
+## In the level
+
+**In Level** (recipe editor toolbar) plays the take in the level itself: on the character you have
+selected there - retargeted onto it first if its skeleton is different - or, with nothing selected, on
+a new character in front of the camera.
+
+**Level Target** (recipe editor toolbar) plays the take on that character too, and puts each
+constraint pin in the level as a marker you move with the gizmo (see *Placing pins in the level*).
+
+**Lay Out in Level...** (right-click clips) places every selected clip in the level as a grid of
+characters, each playing its clip on a loop, labelled with the clip's name and prompt, standing on the
+floor below - a quick way to compare a batch. They go in the World Outliner folder
+**MotionForge Layout**. Pick a **Character** to play them all on one character (retargeting as needed).
+
+**Make Playable Character...** (right-click a MetaHuman's Blueprint, or any character Blueprint >
+MotionForge) makes a playable character Blueprint: a child of the base class you pick with the MetaHuman
+attached to its capsule. Pick a base that already moves - the Third Person template's character is
+chosen for you when the project has it. **Make it the default pawn** also creates a game mode that
+spawns it and sets it in **Project Settings > Maps & Modes**. (Tested with a stand-in Blueprint; with a
+real MetaHuman you may still need to point its body at the base character's animation, the way
+Epic's MetaHuman docs describe.)
+
+## Motion index and animation packs
+
+**Build Motion Index...** (right-click clips, or a folder) makes a DataTable with one row per clip:
+the prompt it came from, its length, seed, character, kind (take, export or retarget), the recipe,
+how far it travels, and **Tags** for searching. Tags are the prompt's key words plus what the motion
+does: `in-place` or `travels`, a pace (`slow`, `walking-pace`, `running-pace`), `turns`, `loops`,
+`short` or `long`, and the kind. The row type (`FMotionForgeMotionIndexRow`) is in the plugin's runtime module, so
+your game can read the table to pick clips. CSV and JSON copies go to `Saved/MotionForge/Index`.
+
+**Export Animation Pack...** copies the clips into a clean `/Game/<Pack>` folder - grouped by
+character under `Animations/`, with the pack's own index in `Data/` - and writes `prompts.md`, the
+index as CSV/JSON and a README to `Saved/MotionForge/Packs/<Pack>`. Right-click the pack folder >
+**Migrate** to move it into an empty project for sharing or a Fab listing. Clips made with MotionForge
+come from NVIDIA's Kimodo; check the model licence (NVIDIA Open Model License) before selling them.
+
+## Editing in Blender
+
+**Edit in Blender** (the recipe editor's **Blender** menu, or right-click a clip) opens the clip in
+Blender. Edit it there, then press **Send to Unreal** (the **MotionForge** tab in the 3D viewport
+sidebar, N) - or just save the .blend with **Send on Save** ticked. Back in Unreal, **Sync Back from
+Blender** puts the edit on the **same** clip asset, so everything that uses it - a Blend Space, a
+Sequencer section, a montage - sees the change. **Auto Sync** does the Sync Back by itself as soon as
+Blender sends.
+
+MotionForge finds Blender under Program Files; set **Blender Executable Path** (Editor Preferences >
+Plugins > MotionForge > Blender) if it's elsewhere. The round trip goes through FBX in
+`Saved/MotionForge/Blender`. In testing, a clip sent out and back unedited came back with the same
+number of frames and every joint within 0.05 mm.
+
+## Generating on another machine
+
+Generation can run on another PC - a machine with a better GPU on your network - while you work.
+Copy the plugin's `Resources/motionforge-server` folder, a `kimodo-cpp-win64` folder and the model files
+to that machine and start `motionforge_server.py` there (its README has the steps; it needs only
+Python). Then set **Backend** to **Remote server (URL)**, **Remote Server Url** to
+`http://<that machine>:7870` and **Remote Server Token** to its token, and press **Check Server** in
+the Setup tab. Everything else works the same - takes, constraints, the Jobs tab - with the clips
+imported here. Use a token, and keep the port inside your network.
 
 ## Scripting
 
@@ -347,6 +619,9 @@ creates goes into your project, never the plugin.
 | `/Game/MotionForge/Results` | One result record per take |
 | `/Game/MotionForge/Exports` | Finished clips (a recipe's Output Directory overrides this) |
 | `/Game/MotionForge/Retargeted` | Retargets onto the bundled base characters, one folder each |
+| `/Game/MotionForge/Batches/<Batch>` | Recipes made by a prompt-file batch |
+| `/Game/MotionForge/Sequencer/<Sequence>` | Recipes made by Generate in Sequencer |
+| `Saved/MotionForge/` | Job history, batch records (`Batches/`), index copies (`Index/`), pack files (`Packs/`), Blender round-trip FBX (`Blender/`) |
 
 ## When something looks wrong
 
@@ -370,11 +645,14 @@ creates goes into your project, never the plugin.
 
 ## More guides and help
 
-Both guides are in the plugin's Docs folder and on the docs site (https://pr3vail.github.io/MotionForge-Docs/).
+The guides are in the plugin's Docs folder and on the docs site (https://pr3vail.github.io/MotionForge-Docs/).
 
 - [Prompting Guide](prompting-guide.md): prompt patterns that work, by kind of motion, with durations and settings.
 - [Characters Guide](characters-guide.md): getting clips onto MetaHumans, Character Creator, Mixamo and your own
   characters, and playing them.
+- [MetaHuman Guide](metahuman-guide.md): a MetaHuman from retarget to playable, with Level Target and Merge Body + Garments.
+- [Sequencer Guide](sequencer-guide.md): the MotionForge track, generating between poses and Control Rig keys, and
+  chaining clips.
 - Questions and bug reports: **support@pr3vailco.com**, or the Pr3vail Discord at
-  **https://discord.gg/dXae7duN**. For a generation problem, include what the Setup tab's **Check
+  **https://discord.gg/4ChPb2gZey**. For a generation problem, include what the Setup tab's **Check
   Setup** reports.

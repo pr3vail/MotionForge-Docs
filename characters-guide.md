@@ -39,6 +39,9 @@ Retargeter editor is kept.
 Retargeted MetaHuman clips carry root motion the same way as any other export (see the User Guide's
 *Exporting* section).
 
+The whole MetaHuman workflow, including placing pins on a MetaHuman in your level (Level Target) and
+merging its body and clothing into one mesh, is in [MetaHuman Guide](metahuman-guide.md).
+
 ## Character Creator (CC3 / CC4)
 
 Export from Character Creator as FBX with the **Unreal** preset and import it as a skeletal mesh. If
