@@ -15,6 +15,9 @@ character.
 - **[MetaHuman Guide](metahuman-guide.md)**: a MetaHuman from retarget to playable: Level Target, clean-up, Merge Body + Garments
 - **[Sequencer Guide](sequencer-guide.md)**: the MotionForge track, generating between poses and Control Rig keys
 
+Optional: the **[remote server](server/)** generates on another machine on your network (a separate
+download, not part of the plugin).
+
 The same guides ship inside the plugin (`MotionForge/Docs/`) and open from the **Guide** button in the Recipe
 editor.
 

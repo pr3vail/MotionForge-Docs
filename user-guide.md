@@ -2,7 +2,7 @@
 title: User Guide
 ---
 
-You describe a body moving in plain words; MotionForge runs NVIDIA's Kimodo model on your own
+You describe a body moving in plain words; MIA MotionForge runs NVIDIA's Kimodo model on your own
 machine and gives you an animation on its bundled SOMA skeleton. You then trim it, touch it up by
 hand, export a clip ready for your game, and retarget it onto your own character. Nothing leaves
 your computer.
@@ -11,17 +11,17 @@ your computer.
 floors exist. "Sits in a chair" gives you a seated posture in mid air. That's normal - you add the
 chair as a preview mesh and pose the body onto it (see *Props*).
 
-## Opening MotionForge
+## Opening MIA MotionForge
 
-Click the **MotionForge** button on the main editor toolbar. It reopens the recipe you touched
+Click the **MIA MotionForge** button on the main editor toolbar. It reopens the recipe you touched
 most recently, or creates a new one under your Recipes folder. You can also right-click in the
-Content Browser to create a *MotionForge Recipe*, or double-click any recipe.
+Content Browser to create a *MIA MotionForge Recipe*, or double-click any recipe.
 
 If generation isn't set up yet, the Setup Wizard opens first (see [Installation Guide](installation-guide.md)).
 
 ## The editor
 
-Five dockable tabs. Drag them anywhere; **Window > Load Layout > Default Editor Layout** resets.
+Six dockable tabs. Drag them anywhere; **Window > Load Layout > Default Editor Layout** resets.
 
 | Tab | What it's for |
 |---|---|
@@ -29,6 +29,7 @@ Five dockable tabs. Drag them anywhere; **Window > Load Layout > Default Editor 
 | **Timeline** | The prompt timeline, the frame ruler, the export range and your pose keys. |
 | **AutoPose** | Posing controls: gizmo mode, World/Local, IK/FK, Capture/Pin, Make Loop, the bone picker. |
 | **Details** | Every recipe setting: seed, samples, steps, guidance, export, props, target mesh, loaded clip. |
+| **Bricks** | MotionBricks: In-between and Live drive, real-time motion from poses and steering. |
 | **Setup** | Backend health, Check Setup, licences, search, this machine, where files go. |
 
 ### Toolbar
@@ -46,7 +47,7 @@ Five dockable tabs. Drag them anywhere; **Window > Load Layout > Default Editor 
 | **Show** | Preview the generated, exported or retargeted clip, or the reference pose. |
 | **In Level** | Play the take on the character selected in the level (retargeted onto it first if needed), or on a new one in front of the camera (see *In the level*). |
 | **Level Target** | Edit the constraint pins on that character in the level, with the level gizmo (see *Placing pins in the level*). |
-| **Blender** | Edit in Blender, Sync Back, Auto Sync (see *Editing in Blender*). |
+| **Blender** | Send to Blender, Sync Back, Auto Sync (see *Editing in Blender*). |
 | **Jobs** | The Jobs tab: every generation, queued, running and finished (see *Working on many clips at once*). |
 | **Tour** / **Guide** | The editor tour, and this guide (see *Help inside the editor*). |
 | **Search box** | Find any recipe, clip, guide section or tab (see *Search*). |
@@ -64,7 +65,7 @@ Two buttons and a search box at the right of the recipe editor's toolbar:
 
 | Button | What it does |
 |---|---|
-| **Tour** | A short walk through the five tabs and the toolbar, one caption at a time (Back / Next / Skip). It also runs by itself the first time a project opens a recipe. |
+| **Tour** | A short walk through the six tabs and the toolbar, one caption at a time (Back / Next / Skip). It also runs by itself the first time a project opens a recipe. |
 | **Guide** | Opens this guide in an editor window. |
 | **Search box** | Type what you're looking for; see *Search*. |
 
@@ -77,13 +78,13 @@ The search box at the right of the toolbar finds:
 | **Recipe** | Every recipe in the project, by the words of its prompts | Opens it |
 | **Clip** | Clips a recipe made (under that recipe's prompts), and other clips in your Generated, Exports and Retargeted folders (by name) | Selects it in the Content Browser |
 | **Guide** | Each section of this guide | Opens the guide at that section |
-| **Tab** | The editor's five tabs | Brings the tab forward |
+| **Tab** | The editor's six tabs | Brings the tab forward |
 
 Exact-word matches show up while you type. With an embedding model, results that match by *meaning*
 follow a moment later, marked **related**: "greeting a friend" finds a recipe prompted "a person waves
 hello", though they share no words. Up/Down and Enter pick a result; Esc closes the list.
 
-**Setup tab > Search** shows which model the box is using (**Check**), embeds everything up front (**Index Now**), and opens the settings (**Search Settings** - *Editor Preferences > Plugins > MotionForge > Search*). **Auto (local)** uses an embedding model in Ollama (install one with `ollama pull nomic-embed-text`) or one loaded in LM Studio, and never a cloud service by itself. Pick OpenAI, Gemini or a Custom server there to use one; your prompts and this guide's text are then sent to it to be embedded. **Off** keeps the box to exact words.
+**Setup tab > Search** shows which model the box is using (**Check**), embeds everything up front (**Index Now**), and opens the settings (**Search Settings** - *Editor Preferences > Plugins > MIA MotionForge > Search*). **Auto (local)** uses an embedding model in Ollama (install one with `ollama pull nomic-embed-text`) or one loaded in LM Studio, and never a cloud service by itself. Pick OpenAI, Gemini or a Custom server there to use one; your prompts and this guide's text are then sent to it to be embedded. **Off** keeps the box to exact words.
 
 Embeddings are cached in the project's `Saved` folder, so an unchanged recipe is never embedded twice.
 Without an embedding model the box still works, by exact words, and says so under the results.
@@ -132,17 +133,17 @@ Transitions must be physically possible: lying down followed by sprinting needs 
 
 On a CPU, most of a first take is spent reading your prompt with the text model (about 12 seconds),
 and the rest is the diffusion steps (about half a second each). With the kimodo.cpp backend,
-MotionForge keeps the model running between takes and remembers every prompt it has read, so **a second take of the same prompt skips
+MIA MotionForge keeps the model running between takes and remembers every prompt it has read, so **a second take of the same prompt skips
 that part**: measured on a desktop CPU, a 2-second take at 5 steps went from 18 s to 3 s, and at 20
 steps from 23 s to 10 s. That makes Samples of 2-4, a new seed, or a tweak to steps or guidance cheap
 once the first take is done. A new prompt, or an edited one, pays the reading cost once.
 
 The kept-loaded model uses memory while it's alive and exits after 10 idle minutes. Both are in
-**Editor Preferences > Plugins > MotionForge > kimodo.cpp**: **Keep kimodo.cpp Loaded** and **Idle
+**Editor Preferences > Plugins > MIA MotionForge > kimodo.cpp**: **Keep kimodo.cpp Loaded** and **Idle
 Shutdown (minutes)**. Changing guidance restarts it once, because those values are read when
 it starts.
 
-**GPU or CPU.** MotionForge ships two builds of the generator: one that uses the GPU through Vulkan
+**GPU or CPU.** MIA MotionForge ships two builds of the generator: one that uses the GPU through Vulkan
 and one for the CPU only. **Compute Device** (same settings page) picks between them:
 
 | Compute Device | Runs on |
@@ -171,6 +172,34 @@ those.
 **Editing a recipe changes its identity.** Change a prompt, duration, seed, steps or guidance and
 the loaded clip is marked stale (orange status line) - it no longer matches the recipe. Colours,
 locks, pose keys, export range and props don't count; changing them never marks a clip stale.
+
+## MotionBricks: real-time motion
+
+The **Bricks** tab generates motion with NVIDIA MotionBricks instead of from a text prompt. It is fast (a
+segment takes tens of milliseconds on a GPU) and it works from poses and steering rather than words.
+
+- **In-between** - pick a start pose and an end pose and a length; it generates the motion joining them.
+- **Live drive** - set a speed and a heading, **Add segment** for each stretch (change them between
+  segments to turn or speed up), then **Generate drive**. The segments are chained from the start pose.
+
+Either way the result is loaded as the recipe's clip, so AutoPose keys, the export range, Export and
+Retarget work on it exactly as on a text-to-motion clip.
+
+**Setting it up.** MotionBricks needs a *bundle* (`predict.onnx`, `meta.json`, `seeds.json`), which is a
+separate download and is never bundled. The easy way: on the tab, open **Get the model** and press **Check
+for the model**. If one is published it shows what it is and its licence; tick the box to accept the licence,
+press **Install**, and MIA MotionForge downloads it (resuming if the connection drops), checks every file, and
+points itself at it. No model is published yet, because NVIDIA has only released a robot preview, so Check for the model will say so. Until a
+human checkpoint ships, build a bundle yourself from NVIDIA's released checkpoints with
+the scripts in the plugin's `Content/Python/motionbricks-tools` folder (its README has the steps) and press **Choose bundle folder...**. Leave **Use GPU
+(DirectML)** on for any GPU, or turn it off for the CPU. It runs through Unreal's own neural network engine,
+so the engine's **NNERuntimeORT** plugin must be enabled (Edit > Plugins > Machine Learning).
+
+**What to expect today.** The only released weights are NVIDIA's G1 *robot* preview. The motion is a
+robot's, retargeted onto the human skeleton: it proves the pipeline and is useful for blocking, but it does
+not look human. When NVIDIA releases a human checkpoint, only the bundle folder changes.
+
+The weights are under the NVIDIA Open Model License; the code that runs them is Apache-2.0.
 
 ## AutoPose: posing by hand
 
@@ -224,9 +253,8 @@ A constraint is a pose the model must hit. Unlike an AutoPose key, which is bake
 a constraint is sent to the model with the prompt, so the **next Generate authors the whole motion
 around it**: the steps before a planted foot lead into it, the body turns to reach a pinned hand.
 
-Every backend takes constraints: the bundled kimodo.cpp (MotionForge's build adds constraint input
-to it), kimodo_gen, and a remote server. If you point **Kimodo Cpp Generate Exe Path** at your own
-kimodo.cpp build, it needs MotionForge's patch (`Resources/kimodo-cpp-win64/motionforge.patch`).
+Every backend takes constraints: the built-in kimodo.cpp (MIA MotionForge's build adds constraint input
+to it, see `Docs/Backend/motionforge.patch`) and a remote server.
 
 1. Get the body into the pose at a frame - pose it with AutoPose, or use a take that's close.
 2. In the AutoPose tab under **Constraints**, pin what matters:
@@ -282,13 +310,9 @@ To make the character walk a route, draw it:
 **Import... / Export...** read and write Kimodo's own `constraints.json`, so constraint sets move
 between recipes, teammates and NVIDIA's Kimodo demo. Poses must be 77-joint SOMA poses.
 
-Constraints can only be pinned on a clip on MotionForge's SOMA skeleton (a generated clip), not a
+Constraints can only be pinned on a clip on MIA MotionForge's SOMA skeleton (a generated clip), not a
 retargeted one. Adding, moving or switching off a constraint marks the loaded clip stale, since it
 changes what's generated.
-
-**Reduce Foot Sliding** (Details panel, Generation) lets kimodo_gen run Kimodo's own foot-skate
-cleanup. It needs Kimodo's `motion_correction` extension built in your venv; leave it off if
-generation fails with it on.
 
 ## Props: posing against something real
 
@@ -335,15 +359,18 @@ dotted line on the viewport floor (**Root Path**) is the raw pelvis path, before
 A Root Motion clip looks like it runs on the spot in the animation editor - there's no capsule
 there. Play it on a character.
 
-Tick **Clean Up On Export** (Details > Export) to run the clean-up below on every export.
+Tick **Clean Up On Export** (Details > Export) to run the foot clean-up below on every export. **Self
+Collision** (arms and hands kept out of the body and out of each other) is already on for every export,
+so a generated clip never has a hand inside the hip or one arm through the other; untick it in the
+recipe's Clean Up > Collision settings if you want the raw motion.
 
 ## Cleaning up clips
 
 Generated motion can float a little, sink a little, or let a planted foot slide. The clean-up fixes
 that after the fact, on any clip - generated, exported or retargeted onto another character (it
-finds the legs and arms on MotionForge's skeleton, Manny/Quinn, MetaHumans, UEFN, Mixamo and
-Character Creator characters). Right-click clips > **MotionForge > Clean Up...**, or a folder >
-**MotionForge: Clean Up Clips in Folder...**. It saves cleaned copies (`<clip>_Clean`) unless you
+finds the legs and arms on MIA MotionForge's skeleton, Manny/Quinn, MetaHumans, UEFN, Mixamo and
+Character Creator characters). Right-click clips > **MIA MotionForge > Clean Up...**, or a folder >
+**MIA MotionForge: Clean Up Clips in Folder...**. It saves cleaned copies (`<clip>_Clean`) unless you
 tick **Overwrite**.
 
 | Pass | What it does |
@@ -351,7 +378,7 @@ tick **Overwrite**.
 | **Ground** | Moves the whole body up or down so planted feet stand at **Ground Height**. |
 | **Ground Feet** | While a foot is planted, puts its sole on the floor (no floating, no sinking). |
 | **Anchor Feet** | While a foot is planted, holds it still - removes foot sliding. |
-| **Self Collision** | Pushes the arms out of the torso and thighs where they pass through the body. **Hands Only** is a gentler version for the hands alone. |
+| **Self Collision** | On by default. Swings the arms out of the torso and thighs, and apart from each other, wherever they pass through. **Hands Only** is a gentler version for the hands alone. |
 
 A foot counts as planted when it's below **Contact Height** (10 cm) and slower than **Contact
 Speed** (15 cm/s) - Kimodo's own rule. Fixes fade in and out over **Blend Frames** and are capped by
@@ -369,12 +396,13 @@ clear, and to a physics-asset body's surface (24 cm) when it had one.
 
 ## Retargeting onto a character
 
-Open the **Retarget** menu on the toolbar and pick a character. MotionForge retargets the latest
+Open the **Retarget** menu on the toolbar and pick a character. MIA MotionForge retargets the latest
 export (or the raw clip if nothing is exported) through Unreal's IK Retargeter and shows the result.
 
 | Menu entry | What it is |
 |---|---|
-| **Base Male (MotionForge)** / **Base Female (MotionForge)** | Ready-made base characters that ship with the plugin: a neutral mannequin body on a UE-mannequin-style skeleton (`pelvis`, `spine_01`, `upperarm_l`, `thigh_l`, full fingers), with a physics asset. Free to use in your game. |
+| **Base Male (MIA MotionForge)** / **Base Female (MIA MotionForge)** | Ready-made base characters that ship with the plugin: a neutral mannequin body on a UE-mannequin-style skeleton (`pelvis`, `spine_01`, `upperarm_l`, `thigh_l`, full fingers), with a physics asset. Free to use in your game. |
+| **Studio Female** / **Studio Male** / **Studio Female (stylized)** / **Studio Male (stylized)** | MIA Studio's four stock bodies (two realistic, two stylized), shipped with the plugin on the same UE-mannequin-style skeleton, with clavicles and a physics asset (no finger bones). Free to use in your game. |
 | **UE5 Manny** / **UE5 Quinn** / **UEFN Mannequin** | Epic's mannequins, when they're in your project. |
 | **MetaHuman: *name*** | Each MetaHuman body in your project (found by its `metahuman_base_skel` skeleton). |
 | **Character Creator: *name*** / **Mixamo: *name*** | Reallusion CC3/CC4 characters (`CC_Base_` bones) and Mixamo-rigged characters (`Hips`, `LeftUpLeg`... or `mixamorig:` bones) in your project. |
@@ -386,16 +414,16 @@ The menu lists up to 12 of them. For a MetaHuman, the clip goes onto the **body*
 through the MetaHuman Blueprint). To play it, set the clip on the Body component, or use it in the
 MetaHuman's animation Blueprint.
 
-One-click characters need no setup: MotionForge builds its own IK Rig for the target automatically
+One-click characters need no setup: MIA MotionForge builds its own IK Rig for the target automatically
 (chains only, so a solver in a hand-made rig can't pin the pelvis) and keeps it next to the result.
 Retargets onto the base characters land in `/Game/MotionForge/Retargeted/<Character>`; retargets
 onto your own meshes go next to the mesh.
 
-MotionForge's skeleton stands in a T-pose, while Manny, Quinn and most game characters stand in
-an A-pose. The first time a character is retargeted, MotionForge lines its arms and legs up with the
+MIA MotionForge's skeleton stands in a T-pose, while Manny, Quinn and most game characters stand in
+an A-pose. The first time a character is retargeted, MIA MotionForge lines its arms and legs up with the
 T-pose in a retarget pose called **AlignedToSource**, so the arms hang as they do in the clip instead
 of sitting out from the body. If a character needs a different starting pose, adjust that pose in
-the IK Retargeter editor; MotionForge keeps your change.
+the IK Retargeter editor; MIA MotionForge keeps your change.
 
 **Manny and Quinn aren't bundled** - Epic's licence only lets them ship inside a project, not a
 plugin - but they're free for every Unreal user. Add Epic's free *Mannequins Asset Pack* from
@@ -405,23 +433,23 @@ Epic's free Game Animation Sample the same way.
 
 Check the result on the character: facing, feet on the ground, travel kept, natural wrists.
 
-The IK Retargeter creates new animations with root-motion flags at their defaults; MotionForge
+The IK Retargeter creates new animations with root-motion flags at their defaults; MIA MotionForge
 carries a Root Motion export's setting across for you. For clips retargeted by hand, right-click
-them in the Content Browser: **MotionForge > Set Up For Root Motion** / **Set Up For In Place**.
+them in the Content Browser: **MIA MotionForge > Set Up For Root Motion** / **Set Up For In Place**.
 
-A character with longer or shorter legs than MotionForge's skeleton can end up floating or sinking.
-Tick **Ground Retargeted Clips** (Editor Preferences > Plugins > MotionForge > Export) to stand every
+A character with longer or shorter legs than MIA MotionForge's skeleton can end up floating or sinking.
+Tick **Ground Retargeted Clips** (Editor Preferences > Plugins > MIA MotionForge > Export) to stand every
 retarget back on the floor, or run **Clean Up** on it.
 
 **Auto Scale Retargets** (same place, on by default) finds the stride scale for each character. That
 is the IK Retargeter's **Pelvis Motion > Scale Horizontal**: how far the hips travel per centimetre
-the source travels. MotionForge tries a few values with quick retarget passes and keeps the one with
+the source travels. MIA MotionForge tries a few values with quick retarget passes and keeps the one with
 the least foot sliding, and the status line reports it. In testing on a generated walk, sliding went
 from 2.29 cm to 0.83 cm on the Base Male, 1.76 to 0.75 cm on the Base Female and 1.12 to 0.64 cm on
 a MetaHuman. Turn it off to keep a scale you set yourself in the IK Retargeter.
 
 MetaHuman clothing is separate meshes on the body's skeleton. To work with one mesh, select the body
-and its garments and choose **MotionForge: Merge Body + Garments** (see [MetaHuman Guide](metahuman-guide.md)).
+and its garments and choose **MIA MotionForge: Merge Body + Garments** (see [MetaHuman Guide](metahuman-guide.md)).
 
 Fix motion problems at the source (a better prompt, a key), not in the retarget.
 
@@ -430,17 +458,19 @@ Fix motion problems at the source (a better prompt, a key), not in the retarget.
 Select several assets in the Content Browser and right-click. Everything here does what the recipe
 editor's buttons do, for the whole selection.
 
-| On | Right-click > MotionForge > | What it does |
+| On | Right-click > MIA MotionForge > | What it does |
 |---|---|---|
 | **Animation sequences** | **Retarget To** > a character | Retargets every selected clip onto that character (the same list as the Retarget menu). Each lands next to the character, with its root-motion setting carried across. |
 | | **Set Up For Root Motion** / **Set Up For In Place** | Sets the root-motion flags on every selected clip. |
 | | **Clean Up...** | Grounds, plants and (optionally) un-collides every selected clip (see *Cleaning up clips*). |
 | | **Chain into Level Sequence...** | Plays the clips back to back on one character in a new Level Sequence (see *In Sequencer*). |
 | | **Lay Out in Level...** | A labelled grid of characters, one per clip (see *In the level*). |
-| | **Edit in Blender** / **Sync Back from Blender** | See *Editing in Blender*. |
+| | **Locomotion Set...** | Eight travel directions from one walk or run cycle (see *Locomotion sets*). |
+| | **Make Montage** / **Stream to Live Link** / **Export SMPL-X (.npz)** / **Send to Cascadeur** | See *Montages, Live Link, SMPL-X and Cascadeur*. |
+| | **Send to Blender** / **Sync Back from Blender / Cascadeur** | See *Editing in Blender*. |
 | | **Build Motion Index...** / **Export Animation Pack...** | See *Motion index and animation packs*. |
-| **Folders** | **MotionForge: Clean Up Clips in Folder...** / **Build Motion Index for Folder...** / **Export Folder as Animation Pack...** | The same, for every clip in the folder and its subfolders. |
-| **Blueprints** | **MotionForge: Make Playable Character...** | See *In the level*. |
+| **Folders** | **MIA MotionForge: Clean Up Clips in Folder...** / **Build Motion Index for Folder...** / **Export Folder as Animation Pack...** | The same, for every clip in the folder and its subfolders. |
+| **Blueprints** | **MIA MotionForge: Make Playable Character...** | See *In the level*. |
 | **Recipes** | **Generate Selected** | Queues each recipe in the Jobs tab; they generate one after another in the background, each with its own Samples, seed and settings. Recipes open in the recipe editor are skipped (generate those from their editor). |
 | | **Export Selected** | Exports each recipe's loaded clip: trimmed, keys baked, Export Motion applied. |
 | | **Retarget Latest Export To** > a character | Retargets each recipe's latest export (or its loaded clip, if it has no export). |
@@ -450,7 +480,7 @@ notification lists anything that failed and why.
 
 ### The Jobs tab
 
-**Window > MotionForge Jobs** (or **Jobs** on the recipe editor's toolbar): every generation - queued,
+**Window > MIA MotionForge Jobs** (or **Jobs** on the recipe editor's toolbar): every generation - queued,
 running and finished - one row each, newest on top: recipe, status, takes done, time, where it came
 from, backend, and what it made (click to find it in the Content Browser; hover for the list and any
 error). **Cancel** takes a queued job out or stops the running one (finished takes are kept);
@@ -493,25 +523,25 @@ segment of this recipe - one continuous clip - instead of a recipe of its own.
 
 The full walkthrough is in [Sequencer Guide](sequencer-guide.md).
 
-**The MotionForge track.** On a character's row, click **+ Track > MotionForge** to add a shot at the
-playhead: a prompt over a stretch of time. Right-click the shot and choose **Generate**. MotionForge
+**The MIA MotionForge track.** On a character's row, click **+ Track > MIA MotionForge** to add a shot at the
+playhead: a prompt over a stretch of time. Right-click the shot and choose **Generate**. MIA MotionForge
 reads the pose just before the shot and the pose at its end, from whatever plays there (animation
 clips, or a Control Rig track you keyed by hand), and pins them. It then generates between them and
 puts the take on the character's animation track. Generating again replaces the shot's last take.
 To land a move exactly, key the pose on a Control Rig track at the shot's end and generate into it.
 
-Open a Level Sequence with a character in it. Sequencer's toolbar also gets a **MotionForge** menu.
+Open a Level Sequence with a character in it. Sequencer's toolbar also gets a **MIA MotionForge** menu.
 
 **Generate on Selected Character...** - select the character's track, put the playhead where the new
 motion should start, and write the prompt (one segment per line; `| 2s` for a segment's length).
-MotionForge generates in the background (see the Jobs tab), retargets the result onto that character
+MIA MotionForge generates in the background (see the Jobs tab), retargets the result onto that character
 if it needs it, and adds it to the character's animation track at the playhead. **Start from the
-pose playing here** pins the new motion's first frame to the MotionForge clip already playing at the
+pose playing here** pins the new motion's first frame to the MIA MotionForge clip already playing at the
 playhead, so it carries on from it instead of snapping to a new start. **Mute the older sections it
 overlaps** keeps the old take on the track, switched off. Both the raw clip and the retargeted one are
 kept.
 
-**Add Prompt Subtitles** - shows each MotionForge clip's prompt as a line of text over the selected
+**Add Prompt Subtitles** - shows each MIA MotionForge clip's prompt as a line of text over the selected
 character while it plays (a text actor per clip, attached to the head).
 
 **Bake Selected to Control Rig** - turns the selected character's animation into an FK Control Rig
@@ -535,10 +565,10 @@ constraint pin in the level as a marker you move with the gizmo (see *Placing pi
 **Lay Out in Level...** (right-click clips) places every selected clip in the level as a grid of
 characters, each playing its clip on a loop, labelled with the clip's name and prompt, standing on the
 floor below - a quick way to compare a batch. They go in the World Outliner folder
-**MotionForge Layout**. Pick a **Character** to play them all on one character (retargeting as needed).
+**MIA MotionForge Layout**. Pick a **Character** to play them all on one character (retargeting as needed).
 
 **Make Playable Character...** (right-click a MetaHuman's Blueprint, or any character Blueprint >
-MotionForge) makes a playable character Blueprint: a child of the base class you pick with the MetaHuman
+MIA MotionForge) makes a playable character Blueprint: a child of the base class you pick with the MetaHuman
 attached to its capsule. Pick a base that already moves - the Third Person template's character is
 chosen for you when the project has it. **Make it the default pawn** also creates a game mode that
 spawns it and sets it in **Project Settings > Maps & Modes**. (Tested with a stand-in Blueprint; with a
@@ -557,29 +587,153 @@ your game can read the table to pick clips. CSV and JSON copies go to `Saved/Mot
 **Export Animation Pack...** copies the clips into a clean `/Game/<Pack>` folder - grouped by
 character under `Animations/`, with the pack's own index in `Data/` - and writes `prompts.md`, the
 index as CSV/JSON and a README to `Saved/MotionForge/Packs/<Pack>`. Right-click the pack folder >
-**Migrate** to move it into an empty project for sharing or a Fab listing. Clips made with MotionForge
+**Migrate** to move it into an empty project for sharing or a Fab listing. Clips made with MIA MotionForge
 come from NVIDIA's Kimodo; check the model licence (NVIDIA Open Model License) before selling them.
 
 ## Editing in Blender
 
-**Edit in Blender** (the recipe editor's **Blender** menu, or right-click a clip) opens the clip in
-Blender. Edit it there, then press **Send to Unreal** (the **MotionForge** tab in the 3D viewport
-sidebar, N) - or just save the .blend with **Send on Save** ticked. Back in Unreal, **Sync Back from
-Blender** puts the edit on the **same** clip asset, so everything that uses it - a Blend Space, a
-Sequencer section, a montage - sees the change. **Auto Sync** does the Sync Back by itself as soon as
-Blender sends.
+**Send to Blender** (the recipe editor's **Blender** menu, or right-click a clip) exports the clip to
+`Saved/MotionForge/Blender/<clip>.fbx` and copies that path to your clipboard. MIA MotionForge does not
+start Blender for you; open it yourself, then:
 
-MotionForge finds Blender under Program Files; set **Blender Executable Path** (Editor Preferences >
-Plugins > MotionForge > Blender) if it's elsewhere. The round trip goes through FBX in
-`Saved/MotionForge/Blender`. In testing, a clip sent out and back unedited came back with the same
-number of frames and every joint within 0.05 mm.
+1. In Blender's **Scripting** tab, **Open** the plugin's `Content/Python/blender/motionforge_blender.py`
+   (the notification shows its full path) and press **Run Script**. This adds a **MIA MotionForge** tab
+   to the 3D viewport sidebar (N). Run it once per Blender session.
+2. In that tab, press **Open Clip from Unreal** and paste the path.
+3. Edit, then press **Send to Unreal** - or just save the .blend with **Send on Save** ticked.
+
+Back in Unreal, **Sync Back from Blender** puts the edit on the **same** clip asset, so everything that
+uses it - a Blend Space, a Sequencer section, a montage - sees the change. **Auto Sync** does the Sync
+Back by itself as soon as Blender sends. In testing (Blender 5.1), a clip sent out and back unedited came
+back with every joint within 1 cm.
+
+## Locomotion sets: eight directions from one cycle
+
+Right-click a forward walk or run cycle > **MotionForge > Locomotion Set...** to make the eight travel
+directions game code usually needs: forward, the two forward diagonals, left, right and the three
+back-pedals. Each is saved next to the source as `<clip>_Fwd`, `_FwdR`, `_R`, `_BwdR`, `_Bwd`, `_BwdL`,
+`_L` and `_FwdL`, with an on-the-spot `_IP` copy of each when **Also In Place** is ticked. It works on
+generated clips, the CMU presets and clips retargeted onto Manny, Quinn, MetaHuman, UEFN, Mixamo and
+Character Creator characters. The clip should travel forward.
+
+| Group | Setting | What it does |
+|---|---|---|
+| **Gait** | **Gait** preset | Stroll, Brisk, Heavy or Sneak fill in the numbers below; change any of them after. |
+| | **Stride** | Step length (0.3-2). |
+| | **Cadence** | Playback rate of the cycle: above 1 steps quicker. |
+| | **Bounce**, **Sway** | Up-and-down and side-to-side of the hips (0 glides, 1 as the source). |
+| | **Arm Swing** | 0 holds the arms still (a carried weapon). |
+| | **Lower Cm** | Drops the pelvis for a crouched step. |
+| **Posture** | **Spine Forward / Side / Twist** | Degrees of lean, side bend and twist on the spine. |
+| **Follow-through** | **Lag** | The chest and arms trail the hips. |
+| **Directions** | **Aim Forward** | Strafe: the body keeps facing forward while it travels sideways. Off, the whole body turns to face the way it travels. |
+| | **Style** | Unarmed walk, Rifle walk, Rifle run or Classic fill in the four shares below. |
+| | **Hips / Chest / Leg / Foot Share** | How far each part turns toward the travel, 0 (stays facing forward) to 1 (all the way). The legs swing along the travel at 1. |
+| **Output** | **Anchor Feet** | Re-plants the feet afterwards so turned legs do not slide. |
+
+Back-pedals play the cycle backwards in time, so the knees bend the right way instead of folding
+backwards; only the angle left over after that turns the legs. In testing on the Manny walk, every
+one of the eight clips travelled within 8 degrees of its direction, kept the source's stride to 15%,
+and ended with planted feet that did not slide (the source slid 2.9 cm, the strafes 0.0 cm). From
+Python or Blueprint: `unreal.MotionForgeScriptLibrary.generate_locomotion_set(anim, "Heavy", "Rifle walk", False, True)`.
+
+## Montages, Live Link, SMPL-X and Cascadeur
+
+- **Make Montage** (right-click a clip > MotionForge): a montage next to the clip with 0.2 s blends,
+  a `Footstep_L` / `Footstep_R` notify at every planted foot (found with the same contact rule as the
+  clean-up) and, from Python (`make_montage`), optional sections every N seconds. MotionForge stops at
+  the clip; the montage is the hand-off to gameplay, and the Montage tools edit it further.
+- **Stream to Live Link** / **Stop Live Link Stream**: plays the clip on a loop as a Live Link subject
+  named `MotionForge` (its own skeleton, parent-relative). Put a **Live Link Pose** node with that
+  subject in any Anim Blueprint and the character plays the clip live without the clip being on it.
+  Needs the Live Link plugin enabled.
+- **Export SMPL-X (.npz)**: writes a clip on MotionForge's SOMA skeleton as SMPL-X pose parameters
+  (`poses` 55 x 3 axis-angle, `trans`, `betas`, `gender`, `mocap_framerate`) under
+  `Saved/MotionForge/SMPL`, the file AMASS, BEDLAM, Meshcapade and Perceiving Systems' Unreal plugin
+  read. The 22 body joints, jaw and eyes are mapped one to one; hands stay neutral because the model
+  has no fingers. The numpy file layout is checked; how the pose looks on an SMPL-X body is not,
+  because SMPL-X model files are licensed separately and are not part of MotionForge. Export before
+  retargeting.
+- **Send to Cascadeur**: exports the clip to the same FBX the Blender round trip uses and copies the
+  path to the clipboard. In Cascadeur, **File > Import** that FBX; when you are done, export FBX over
+  the same file, then **Sync Back from Blender / Cascadeur**.
+
+Retargeting onto a rig Unreal's own template does not recognise (UEFN and Fortnite characters, Mixamo
+variants, Rigify, SMPL-X, Team Fortress 2) now works: MotionForge reads the bone hierarchy (hands and
+feet by name, then up the parents; the pelvis is what the thighs share) and builds the IK Rig chains
+itself. If a retargeted clip faces a different way from its travel than the source did, the Output
+Log says so; fixing it is left to you. Clips whose frame count and length do not match 30 fps are
+tagged `check-rate` in the motion index and logged, because a clip like that plays at the wrong speed
+with a clean log.
+
+In the Bricks tab, **Plan from path pins** turns the recipe's Root Path pins into a Live drive plan: be
+at each pin at its frame, with the heading, speed and length of each leg worked out from where and when.
+
+### Weapon hold and weight over the foot
+
+In the Locomotion Set dialog, **Polish** holds both hands at a rifle or pistol pose in front of the chest
+through the whole walk (a two-bone arm IK to a pose in the body's own frame, scaled to the arm length, with
+**Reach Limit** capping how straight an arm may go), and **Weight Over Foot** shifts the hips toward the
+foot carrying the weight on the frames where only one foot is down. From Python:
+`generate_locomotion_set(anim, "Heavy", "Rifle walk", False, True, "Rifle", 0.5)`.
+
+### Per-direction numbers, lean, saved styles and the ring
+
+The Locomotion Set dialog has more than the shares for every direction:
+
+- **Per Direction** is a table of rows: pick a direction (forward, 45, 90, 135 or 180 degrees, either side), a part
+  (hips, legs, chest or feet turn in degrees; stride or arm swing as a multiplier) and a value. That one cell
+  changes for that direction only; everything else follows the shares above.
+- **Lean Toward Travel** leans the spine toward the way the body is going, and **Lean At 45 / 90 / 135 / 180**
+  scale it by how far the direction is from forward (defaults 1, 0.7, 0.3, 0).
+- **Save**, **Load**, **Delete**, **To file**, **From file** and **Start over** sit above the settings. A saved
+  style is a small .json file under `Saved/MotionForge/LocomotionStyles`; To file / From file share one.
+- When it finishes, a **result window** lists, per direction, the hips / legs / chest / feet turn, the stride
+  against the source, how far the legs stretch, how far a planted foot drifts, and how far the travel is from
+  the direction asked for.
+- **Show Ring In Level** (on by default) stands the eight on-the-spot clips in the level on a ring, each on the
+  direction it travels. **Lay Out as Ring** in the clip menu does the same for any selection, measuring each
+  clip's own travel.
+
+### Curves: hips and feet
+
+Right-click a walk or run cycle > **MotionForge > Curves: Hips and Feet...** opens a curve editor for one gait
+cycle: the hips' height, side-to-side and forward motion, and each foot's lift, side-to-side and forward
+motion, with two bars showing when each foot is planted (cyan left, orange right). The grey line is what the
+clip does now and the blue one is your edit. Click to add a key, drag to move it, double-click to remove it.
+**Both feet** makes the right foot follow the left half a cycle later. **Apply to a new clip** saves
+`<clip>_Curves` with the hips and feet following your edit; the feet are held where they were plus your foot
+edits (a two-bone leg IK), so changing the hips does not drag planted feet along. A foot that would have to
+stretch past 99.5% of its leg stops short. Scripting: `apply_curves(anim, json)` with
+`{"hipsHeight":[{"t":0,"v":-3},{"t":1,"v":-3}], "footLift":{"left":[...],"right":[...]}}`.
+
+### FBX with another rig's bone names
+
+**MotionForge > Export FBX with Rig Names** writes the clip as an FBX with Mixamo, Unreal mannequin (4 and
+5 share their names) or Character Creator / ActorCore bone names, with no character in the project. MotionForge's SOMA skeleton is a T-pose with identity rest rotations, so this is a rename: the
+hierarchy and the animation keys stay as they are, and a retargeter that matches by name finds every limb.
+Bones a rig has no name for keep their own. Files go to `Saved/MotionForge/RigExport`. In testing, each of the
+three families read back with its bone names and the animation intact. Clips on the SOMA skeleton only,
+before retargeting.
+
+### Live drive: stream while it generates, and steer
+
+The **Bricks** tab's **Live drive to Live Link...** opens the Live Drive window. MotionBricks makes a walking
+character about 0.8 seconds at a time, continuing from where the last piece ended, with the **speed** and
+**heading** you have set at that moment, and the frames play out at 30 fps on a Live Link subject
+(`MotionForgeLive` by default). Put a **Live Link Pose** node with that subject in an Anim Blueprint on a
+character on MotionForge's SOMA skeleton and it walks wherever you steer it. Kimodo text generation returns the
+whole clip when it finishes, so it cannot be streamed while it is made; MotionBricks can. The status line shows
+how long a segment took against how much motion it made; if a segment takes longer to make than to play, the
+character holds its last pose until the next one arrives. Needs the MotionBricks bundle and Live Link.
+Scripting: `start_live_drive`, `set_live_drive_steering(speed, heading)`, `stop_live_drive`.
 
 ## Generating on another machine
 
 Generation can run on another PC - a machine with a better GPU on your network - while you work.
-Copy the plugin's `Resources/motionforge-server` folder, a `kimodo-cpp-win64` folder and the model files
-to that machine and start `motionforge_server.py` there (its README has the steps; it needs only
-Python). Then set **Backend** to **Remote server (URL)**, **Remote Server Url** to
+The MIA MotionForge server is a separate download, not part of the plugin:
+https://github.com/pr3vail/MotionForge-Docs/tree/main/server. Set it up on that machine with the model
+files (its README has the steps). Then set **Backend** to **Remote server (URL)**, **Remote Server Url** to
 `http://<that machine>:7870` and **Remote Server Token** to its token, and press **Check Server** in
 the Setup tab. Everything else works the same - takes, constraints, the Jobs tab - with the clips
 imported here. Use a token, and keep the port inside your network.
@@ -587,14 +741,19 @@ imported here. Use a token, and keep the port inside your network.
 ## Scripting
 
 The toolbar's Import Clip, Export and Retarget are also callable from Editor Utility Blueprints and
-editor Python, under **MotionForge > Scripting** (`unreal.MotionForgeScriptLibrary`). Each returns
+editor Python, under **MIA MotionForge > Scripting** (`unreal.MotionForgeScriptLibrary`). Each returns
 the new asset's path, or an empty string with the reason in its error output.
 
 | Function | Does what the toolbar's... |
 |---|---|
 | **Import Clip** (source path, destination package) | Import Clip does: a `.bvh`, or a kimodo.cpp output folder, onto the bundled skeleton. |
 | **Export Recipe Clip** (recipe) | Export does for that recipe's loaded clip. |
+| **Generate Motion Bricks** (mode, start seed, end seed, tokens, destination package) | Bricks tab's In-between (mode `inbetween`) or a straight Live drive segment (mode `drive`), imported as a new clip. Uses the bundle folder set on the tab. |
 | **Retarget Clip** (clip, target mesh, output folder) | Retarget menu does; an empty output folder puts it next to the mesh. |
+| **Generate Locomotion Set** (clip, gait preset, strafe style, face the travel, also in place) | Locomotion Set dialog does; returns the new clips, one path per line. |
+| **Make Montage** (clip, blend in, blend out, footstep notifies, section seconds) | Make Montage does, with sections if asked. |
+| **Export Smpl** (clip, .npz path) | Export SMPL-X does. |
+| **Start Live Link Stream** (clip, subject) / **Stop Live Link Stream** | Stream to Live Link does. |
 
 ```
 clip, err = unreal.MotionForgeScriptLibrary.import_clip("D:/kimodo/out/walk", "/Game/MotionForge/Generated/Walk")
@@ -603,13 +762,13 @@ clip, err = unreal.MotionForgeScriptLibrary.import_clip("D:/kimodo/out/walk", "/
 ## Demo level
 
 The plugin's optional **Demo** folder has a level, `L_MotionForge_AnimationDemo`, where Epic's UE5 Manny
-and Quinn play six MotionForge clips. In the Content Browser, turn on **Settings > Show Plugin Content**, then
-open the level from **MotionForge Content > Demo > Maps**. Open any recipe in **Demo > Recipes** to see the
-prompt behind a clip. MotionForge doesn't need the Demo folder - delete it whenever you like.
+and Quinn play six MIA MotionForge clips. In the Content Browser, turn on **Settings > Show Plugin Content**, then
+open the level from **MIA MotionForge Content > Demo > Maps**. Open any recipe in **Demo > Recipes** to see the
+prompt behind a clip. MIA MotionForge doesn't need the Demo folder - delete it whenever you like.
 
 ## Where files go
 
-Set in **Edit > Editor Preferences > Plugins > MotionForge > Output**. Everything MotionForge
+Set in **Edit > Editor Preferences > Plugins > MIA MotionForge > Output**. Everything MIA MotionForge
 creates goes into your project, never the plugin.
 
 | Folder (default) | Contents |
@@ -651,7 +810,7 @@ The guides are in the plugin's Docs folder and on the docs site (https://pr3vail
 - [Characters Guide](characters-guide.md): getting clips onto MetaHumans, Character Creator, Mixamo and your own
   characters, and playing them.
 - [MetaHuman Guide](metahuman-guide.md): a MetaHuman from retarget to playable, with Level Target and Merge Body + Garments.
-- [Sequencer Guide](sequencer-guide.md): the MotionForge track, generating between poses and Control Rig keys, and
+- [Sequencer Guide](sequencer-guide.md): the MIA MotionForge track, generating between poses and Control Rig keys, and
   chaining clips.
 - Questions and bug reports: **support@pr3vailco.com**, or the Pr3vail Discord at
   **https://discord.gg/4ChPb2gZey**. For a generation problem, include what the Setup tab's **Check

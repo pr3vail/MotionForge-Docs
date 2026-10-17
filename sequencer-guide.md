@@ -5,10 +5,10 @@ title: Sequencer Guide
 How to generate motion right in a Level Sequence, between the poses already there, and finish it
 by hand.
 
-## The MotionForge track
+## The MIA MotionForge track
 
-A MotionForge track holds **shots**. A shot is a prompt over a stretch of time on one character.
-When you generate a shot, MotionForge:
+A MIA MotionForge track holds **shots**. A shot is a prompt over a stretch of time on one character.
+When you generate a shot, MIA MotionForge:
 
 1. reads the pose the character is in just before the shot, and the pose at the shot's end, from
    whatever plays there: animation clips, or a Control Rig track keyed by hand;
@@ -16,7 +16,7 @@ When you generate a shot, MotionForge:
    take onto the character if needed;
 3. puts the take on the character's animation track at the shot's start.
 
-The track itself plays nothing. The take is an ordinary animation section, and the MotionForge track
+The track itself plays nothing. The take is an ordinary animation section, and the MIA MotionForge track
 is removed when the sequence is cooked for a game.
 
 ### Add a shot
@@ -24,7 +24,7 @@ is removed when the sequence is cooked for a game.
 1. Open a Level Sequence with a character in it (a skeletal mesh actor, a MetaHuman, or a Blueprint
    with a skeletal mesh).
 2. Put the playhead where the new motion should start.
-3. On the character's row, click **+ Track** and choose **MotionForge**. This adds a 4-second shot and
+3. On the character's row, click **+ Track** and choose **MIA MotionForge**. This adds a 4-second shot and
    opens its prompt.
 4. Type what happens, one line per segment. `| 2s` sets a line's length, and lines without one share
    the rest of the shot. Then click **Save and Generate**.
@@ -40,7 +40,7 @@ Right-click a shot:
 |---|---|
 | **Generate** | Generates the shot. Generating again replaces this shot's last take on the animation track (the old clip stays in the Content Browser). |
 | **Edit Prompt...** | Changes the prompt, then generates. |
-| **Open Recipe** | Opens the recipe the last Generate made (`/Game/MotionForge/Sequencer/<Sequence>/R_Shot...`) in MotionForge's full editor, to refine the take with keys, constraints or props. |
+| **Open Recipe** | Opens the recipe the last Generate made (`/Game/MotionForge/Sequencer/<Sequence>/R_Shot...`) in MIA MotionForge's full editor, to refine the take with keys, constraints or props. |
 | **Properties** | Sequencer's own panel for the shot's settings (below). |
 
 Generation runs in the background, so you can keep working. The Jobs tab shows progress, and the
@@ -62,9 +62,9 @@ keys, pins only its start, and the shot's tooltip says so.
 
 ### How poses become pins
 
-- **On MotionForge's own skeleton,** the exact pose becomes one **Full Body** pin.
+- **On MIA MotionForge's own skeleton,** the exact pose becomes one **Full Body** pin.
 - **On any other humanoid** (Manny, Quinn, MetaHumans, Character Creator, Mixamo, your own), the
-  pose becomes a **Root Path** pin plus **both hands and both feet**. They are placed on MotionForge's
+  pose becomes a **Root Path** pin plus **both hands and both feet**. They are placed on MIA MotionForge's
   skeleton, scaled to the character's height and turned to face its way. The model then fills in
   the body around those five points.
 
@@ -75,11 +75,11 @@ to within 0.01 cm. On the Base Male, hands and feet landed within 0.4 cm of the 
 
 This is the main Control Rig workflow:
 
-1. Put the character on a Control Rig track: **MotionForge > Bake Selected to Control Rig** on the
+1. Put the character on a Control Rig track: **MIA MotionForge > Bake Selected to Control Rig** on the
    Sequencer toolbar, or Sequencer's own **Add Control Rig**.
 2. At the frame where the move must land, key the pose by hand: a hand on a door handle, a foot on
    a step.
-3. Add a MotionForge shot that ends on that frame, type the prompt ("a person walks to the door and
+3. Add a MIA MotionForge shot that ends on that frame, type the prompt ("a person walks to the door and
    opens it") and generate.
 
 The take starts from what plays before the shot and lands in your keyed pose. Keep refining the take
@@ -87,22 +87,22 @@ on the Control Rig track, or open the shot's recipe.
 
 ## The Sequencer toolbar menu
 
-Sequencer's toolbar has a **MotionForge** menu:
+Sequencer's toolbar has a **MIA MotionForge** menu:
 
 - **Generate on Selected Character...** is the quick version of a shot. Select the character, put
   the playhead where the motion should start, and type the prompt. **Start from the pose playing
-  here** continues from the MotionForge clip under the playhead.
-- **Add Prompt Subtitles** shows each MotionForge clip's prompt over the character while it plays.
+  here** continues from the MIA MotionForge clip under the playhead.
+- **Add Prompt Subtitles** shows each MIA MotionForge clip's prompt over the character while it plays.
 - **Bake Selected to Control Rig** turns the selected character's animation into an FK Control Rig
   track, so any joint can be keyed by hand. The animation track it came from is muted, not deleted.
 - **Open Jobs** opens the Jobs tab.
 
 ## Chain clips into a sequence
 
-Right-click clips in the Content Browser and choose **MotionForge > Chain into Level Sequence...**.
-MotionForge builds a new sequence that plays the clips back to back on one character, in the order
+Right-click clips in the Content Browser and choose **MIA MotionForge > Chain into Level Sequence...**.
+MIA MotionForge builds a new sequence that plays the clips back to back on one character, in the order
 you selected them. Each clip starts where the last one ended, facing the same way, and neighbouring
-clips blend over **Blend frames**. Add MotionForge shots between them to generate the in-betweens.
+clips blend over **Blend frames**. Add MIA MotionForge shots between them to generate the in-betweens.
 
 ## Tips
 
