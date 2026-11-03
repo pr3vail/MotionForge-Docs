@@ -176,30 +176,35 @@ locks, pose keys, export range and props don't count; changing them never marks 
 ## MotionBricks: real-time motion
 
 The **Bricks** tab generates motion with NVIDIA MotionBricks instead of from a text prompt. It is fast (a
-segment takes tens of milliseconds on a GPU) and it works from poses and steering rather than words.
+segment takes about 30 ms) and it works from poses and steering rather than words. It has two models,
+**Human** (NVIDIA's released human model, the default) and **Robot preview** (an older robot-only bundle).
 
-- **In-between** - pick a start pose and an end pose and a length; it generates the motion joining them.
-- **Live drive** - set a speed and a heading, **Add segment** for each stretch (change them between
-  segments to turn or speed up), then **Generate drive**. The segments are chained from the start pose.
+**Human.** The first time, open the tab, tick the licence box (the NVIDIA Open Model Agreement) and press
+**Install**. MIA downloads NVIDIA's released model (about 758 MB) straight from github.com/NVlabs/motionbricks,
+checks it against a fixed SHA-256, and turns Bricks on; it resumes if the connection drops and is never
+bundled with the plugin. It runs on the CPU through Unreal's own neural network engine, so the engine's
+**NNERuntimeORT** plugin must be enabled (Edit > Plugins > Machine Learning). NVIDIA's model does not load
+on DirectML as released, so there is no GPU switch for it.
+
+- **In-between** - pick where to start (a ready-made pose: standing, crouch, seated, kneeling, hands up, lunge,
+  T-pose; or the end of the last Bricks clip) and where to end (a ready-made pose). **Ahead**, **Left** and
+  **Turn** place the end pose relative to where the start ends, so "Seated, 2 m ahead" has the character
+  walk over and sit down. A longer **Length** (in tokens of 4 frames, 6-16) gives it time to walk there.
+- **Live drive** - set a speed (0-3 m/s: stand, walk, jog, run) and a heading (0 goes along +Z, the way a new
+  character faces; 90 along +X), **Add segment** for each stretch of about 1.1 s, then **Generate drive**. The
+  segments are chained from the start pose; with none added, one is made from the speed and heading above.
 
 Either way the result is loaded as the recipe's clip, so AutoPose keys, the export range, Export and
-Retarget work on it exactly as on a text-to-motion clip.
+Retarget (to Manny, Quinn, a MetaHuman or any rig) work on it exactly as on a text-to-motion clip. To keep
+going, pick **End of the last Bricks clip** as the next start.
 
-**Setting it up.** MotionBricks needs a *bundle* (`predict.onnx`, `meta.json`, `seeds.json`), which is a
-separate download and is never bundled. The easy way: on the tab, open **Get the model** and press **Check
-for the model**. If one is published it shows what it is and its licence; tick the box to accept the licence,
-press **Install**, and MIA MotionForge downloads it (resuming if the connection drops), checks every file, and
-points itself at it. No model is published yet, because NVIDIA has only released a robot preview, so Check for the model will say so. Until a
-human checkpoint ships, build a bundle yourself from NVIDIA's released checkpoints with
-the scripts in the plugin's `Content/Python/motionbricks-tools` folder (its README has the steps) and press **Choose bundle folder...**. Leave **Use GPU
-(DirectML)** on for any GPU, or turn it off for the CPU. It runs through Unreal's own neural network engine,
-so the engine's **NNERuntimeORT** plugin must be enabled (Edit > Plugins > Machine Learning).
+**Robot preview.** Choose **Robot preview** at the top of the tab for NVIDIA's older G1 robot bundle: it needs
+a *bundle* (`predict.onnx`, `meta.json`, `seeds.json`) you build yourself from NVIDIA's checkpoints with the
+scripts in the plugin's `Content/Python/motionbricks-tools` folder (its README has the steps), then **Choose bundle
+folder...**; **Use GPU (DirectML)** runs it on any GPU. Its motion is a robot's, retargeted onto the human
+skeleton: useful for blocking, but it does not look human.
 
-**What to expect today.** The only released weights are NVIDIA's G1 *robot* preview. The motion is a
-robot's, retargeted onto the human skeleton: it proves the pipeline and is useful for blocking, but it does
-not look human. When NVIDIA releases a human checkpoint, only the bundle folder changes.
-
-The weights are under the NVIDIA Open Model License; the code that runs them is Apache-2.0.
+MotionBricks-SOMA-RP-v1 is by NVIDIA, used under the NVIDIA Open Model Agreement (see `Docs/NOTICES.md`).
 
 ## AutoPose: posing by hand
 
@@ -406,6 +411,7 @@ export (or the raw clip if nothing is exported) through Unreal's IK Retargeter a
 | **UE5 Manny** / **UE5 Quinn** / **UEFN Mannequin** | Epic's mannequins, when they're in your project. |
 | **MetaHuman: *name*** | Each MetaHuman body in your project (found by its `metahuman_base_skel` skeleton). |
 | **Character Creator: *name*** / **Mixamo: *name*** | Reallusion CC3/CC4 characters (`CC_Base_` bones) and Mixamo-rigged characters (`Hips`, `LeftUpLeg`... or `mixamorig:` bones) in your project. |
+| **UE5 skeleton: *name*** | A character on the UE5 mannequin's skeleton in your project, such as a body made by MIA or MIA Studio. |
 | **Target Skeletal Mesh** | Your own character, set in Details > Retarget. Asks where to save the result. |
 
 MetaHumans, Character Creator and Mixamo characters only appear once they're in the project: add a
@@ -413,6 +419,8 @@ MetaHuman from the MetaHuman Creator or Quixel Bridge, or import a CC or Mixamo 
 The menu lists up to 12 of them. For a MetaHuman, the clip goes onto the **body** (the face follows
 through the MetaHuman Blueprint). To play it, set the clip on the Body component, or use it in the
 MetaHuman's animation Blueprint.
+
+Every retarget also pushes arms and hands out of the body, so arms don't cross the chest on a character with different proportions. It uses the character's physics asset if it has one, or otherwise capsules fitted to its skin.
 
 One-click characters need no setup: MIA MotionForge builds its own IK Rig for the target automatically
 (chains only, so a solver in a hand-made rig can't pin the pelvis) and keeps it next to the result.
@@ -725,7 +733,7 @@ character about 0.8 seconds at a time, continuing from where the last piece ende
 character on MotionForge's SOMA skeleton and it walks wherever you steer it. Kimodo text generation returns the
 whole clip when it finishes, so it cannot be streamed while it is made; MotionBricks can. The status line shows
 how long a segment took against how much motion it made; if a segment takes longer to make than to play, the
-character holds its last pose until the next one arrives. Needs the MotionBricks bundle and Live Link.
+character holds its last pose until the next one arrives. Uses NVIDIA's human MotionBricks model once it is installed (Bricks tab), else a robot-preview bundle; needs Live Link.
 Scripting: `start_live_drive`, `set_live_drive_steering(speed, heading)`, `stop_live_drive`.
 
 ## Generating on another machine
